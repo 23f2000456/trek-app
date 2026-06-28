@@ -1,17 +1,17 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from flask_login import UserMixin
 
 db=SQLAlchemy()
 
-class User(db.Model):
+class User(UserMixin,db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(50), nullable=False)
+    password = db.Column(db.String(200), nullable=False)
     role= db.Column(db.String(50), nullable=False, default='user')
-    Status = db.Column(db.String(50), nullable=False)
-    name = db.Column(db.String(50), nullable=False)
     approval = db.Column(db.Boolean, default=True)
+    blacklist = db.Column(db.Boolean, default=False)
 
     bookings = db.relationship('Booking', backref='trekker', lazy=True)
     assigned_treks = db.relationship('Trek', backref='assigned_staff', lazy=True)
@@ -42,7 +42,6 @@ class Booking(db.Model):
     status = db.Column(db.String(50), nullable=False)
 
 class TrekStaff(db.Model):
-    staff_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     contact = db.Column(db.String(15), nullable ='False')
 

@@ -8,11 +8,12 @@ with app.app_context():
 
     if not User.query.filter_by(role='admin').first():
         admin = User(
+            id=123,
             name='Admin',
             email='admin@trekkers.com',
             password=generate_password_hash('trekkers123'),
             role='admin',
-            is_approved=True
+            approval=True
         )
         db.session.add(admin)
         db.session.commit()
