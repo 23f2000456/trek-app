@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manage Staff</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<nav class="navbar navbar-dark bg-dark px-4">
+    <span class="navbar-brand">Admin Panel</span>
+    <div>
+        <a href="/admin/dashboard" class="btn btn-outline-light btn-sm me-2">Dashboard</a>
+        <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+    </div>
+</nav>
+<div class="container mt-4">
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for msg in messages %}
+                <div class="alert alert-info">{{ msg }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <h4>All Trek Staff</h4>
+    <table class="table table-bordered mt-3">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Approved</th>
+                <th>Blacklisted</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for staff in staff_list %}
+            <tr>
+                <td>{{ staff.id }}</td>
+                <td>{{ staff.name }}</td>
+                <td>{{ staff.email }}</td>
+                <td>{{ 'Yes' if staff.approval else 'No' }}</td>
+                <td>{{ 'Yes' if staff.blacklist else 'No' }}</td>
+                <td>
+                    {% if not staff.approval %}
+                    <a href="/admin/staff/approve/{{ staff.id }}" class="btn btn-sm btn-success">Approve</a>
+                    {% endif %}
+                    {% if not staff.blacklist %}
+                    <a href="/admin/staff/blacklist/{{ staff.id }}" class="btn btn-sm btn-warning">Blacklist</a>
+                    {% endif %}
+                    <a href="/admin/staff/remove/{{ staff.id }}" class="btn btn-sm btn-danger"
+                       onclick="return confirm('Remove this staff member?')">Remove</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

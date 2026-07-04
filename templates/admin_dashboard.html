@@ -7,7 +7,10 @@
 <body>
 <nav class="navbar navbar-dark bg-dark px-4">
     <span class="navbar-brand">Trekkers Admin</span>
-    <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+    <div>
+        <a href="/admin/search" class="btn btn-outline-light btn-sm me-2">Search</a>
+        <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+    </div>
 </nav>
 <div class="container mt-4">
     <h4>Welcome, {{ current_user.name }}</h4>
@@ -15,32 +18,36 @@
         <div class="col-md-3">
             <div class="card text-white bg-primary mb-3">
                 <div class="card-body">
-                    <h5 class="card-title">Total Treks</h5>
-                    <p class="card-text fs-3">{{ total_treks }}</p>
+                    <h5>Total Treks</h5>
+                    <p class="fs-3">{{ total_treks }}</p>
+                    <a href="/admin/treks" class="btn btn-light btn-sm">Manage</a>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card text-white bg-success mb-3">
                 <div class="card-body">
-                    <h5 class="card-title">Total Users</h5>
-                    <p class="card-text fs-3">{{ total_users }}</p>
+                    <h5>Total Users</h5>
+                    <p class="fs-3">{{ total_users }}</p>
+                    <a href="/admin/users" class="btn btn-light btn-sm">Manage</a>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card text-white bg-warning mb-3">
                 <div class="card-body">
-                    <h5 class="card-title">Total Staff</h5>
-                    <p class="card-text fs-3">{{ total_staff }}</p>
+                    <h5>Total Staff</h5>
+                    <p class="fs-3">{{ total_staff }}</p>
+                    <a href="/admin/staff" class="btn btn-light btn-sm">Manage</a>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
             <div class="card text-white bg-danger mb-3">
                 <div class="card-body">
-                    <h5 class="card-title">Total Bookings</h5>
-                    <p class="card-text fs-3">{{ total_bookings }}</p>
+                    <h5>Total Bookings</h5>
+                    <p class="fs-3">{{ total_bookings }}</p>
+                    <a href="/admin/bookings" class="btn btn-light btn-sm">View</a>
                 </div>
             </div>
         </div>

@@ -25,7 +25,7 @@ class Trek(db.Model):
     duration = db.Column(db.String(50), nullable=False)
     total_slots = db.Column(db.Integer, nullable=False)
     available_slots = db.Column(db.Integer, nullable=False)
-    assigned_staffid = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    assigned_staffid = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     start_date = db.Column(db.Date, nullable=False)
     end_date = db.Column(db.Date, nullable=False)
     status = db.Column(db.String(50), nullable=False)
