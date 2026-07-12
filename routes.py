@@ -3,7 +3,7 @@ from app import app,db, login_manager
 from models import User,Trek,Booking,TrekStaff 
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
+from datetime import datetime, UTC
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -113,23 +113,6 @@ def admin_dashboard():
         total_staff=total_staff,
         total_bookings=total_bookings
     )
-
-
-#user_dashboard
-@app.route('/user/dashboard')
-@login_required
-def user_dashboard():
-    if current_user.role != 'trekker':
-        flash('Access Denied')
-        return redirect(url_for('login'))
-    
-    my_bookings=Booking.query.filter_by(user_id=current_user.id).all()
-
-    return render_template('user_dashboard.html',
-        my_bookings=my_bookings
-    )
-
-
 
 #trek_management
 @app.route('/admin/treks')
@@ -433,6 +416,176 @@ def staff_update_trek(trek_id):
 
         db.session.commit()
         flash('Trek updated successfully')
-        return redirect(url_for(staff_dashboard))
+        return redirect(url_for('staff_dashboard'))
     
     return render_template('staff_update_trek.html', trek=trek)
+
+
+
+#usermanagemnt
+
+
+#user_dashboard
+@app.route('/user/dashboard')
+@login_required
+def user_dashboard():
+    if current_user.role != 'trekker':
+        flash('Access Denied')
+        return redirect(url_for('login'))
+    
+    my_bookings=Booking.query.filter_by(user_id=current_user.id).all()
+
+    booking_data = []
+    for booking in my_bookings:
+        trek = Trek.query.get(booking.trek_id)
+        booking_data.append({
+            'booking': booking,
+            'trek': trek
+        })
+
+    return render_template('user_dashboard.html',
+        my_bookings=my_bookings
+    )
+
+
+#user_profile
+@app.route('/user/profile',methods=['GET', 'POST'])
+@login_required
+def user_profile():
+    if current_user.role != 'trekker':
+        flash('Access Denied')
+        return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        current_user.name = request.form.get('name', current_user.name)
+        db.session.commit()
+        flash ('Profile updated successfully')
+        return redirect(url_for('user_profile'))
+    
+    return render_template('user_profile.html')
+
+#view_treks
+@app.route('/user/treks')
+@login_required
+def user_treks():
+    if current_user.role != 'trekker':
+        flash('Access Denied')
+        return redirect(url_for('login'))
+    
+    difficulty = request.args.get('difficulty','')
+    location = request.args.get('location', '')
+    search = request.args.get('search', '')
+
+    query = Trek.query.filter_by(status='Open')
+
+    if difficulty:
+        query = query.filter_by(difficulty=difficulty)
+    if location:
+        query = query.filter(Trek.location.ilike(f'%{location}%'))
+    if search:
+        query = query.filter(Trek.name.ilike(f'%{search}%'))
+
+    treks = query.all()
+
+    return render_template('user_treks.html',
+        treks=treks,
+        difficulty=difficulty,
+        location=location,
+        search=search
+    )
+
+#booktrek
+app.route('/user/trek/<int:trek_id>/book', methods=['GET', 'POST'])
+@login_required
+def book_trek(trek_id):
+    if current_user.role != 'trekker':
+        flash('Access Denied')
+        return redirect(url_for('login'))
+
+    trek = Trek.query.get_or_404(trek_id)
+
+    if trek.status != 'Open':
+        flash('This trek is not open for booking')
+        return redirect(url_for('user_treks'))
+    
+    if trek.available_slots <= 0:
+        flash('No slots available for this trek')
+        return redirect(url_for('user_treks'))
+
+    existing = Booking.query.filter_by(
+        user_id=current_user.id,
+        trek_id=trek_id
+    ).first()
+    if existing:
+        flash('You have already booked this trek')
+        return redirect(url_for('user_treks'))
+
+    if request.method == 'POST':
+        new_booking = Booking(
+            user_id=current_user.id,
+            trek_id=trek_id,
+            booking_date=datetime.now(UTC).date(),
+            status='Booked'
+        )
+        db.session.add(new_booking)
+
+        trek.available_slots -= 1
+        db.session.commit()
+
+        flash('Trek booked successfully')
+        return redirect(url_for('user_dashboard'))
+    
+    return render_template('user_book_trek.html', trek=trek)
+
+
+#cancelbooking
+@app.route('/user/booking/<int:booking_id>/cancel')
+@login_required
+def cancel_booking(booking_id):
+    if current_user.role != 'trekker':
+        flash('Access Denied')
+        return redirect(url_for('login'))
+
+    booking = Booking.query.get_or_404(booking_id)
+
+    if booking.user_id != current_user.id:
+        flash('Unauthorized action')
+        return redirect(url_for('user_dashboard'))
+    
+    if booking.status != 'Booked':
+        flash('This booking cannot be cancelled')
+        return redirect(url_for('user_dashboard'))
+    
+    booking.status = 'Cancelled'
+
+    trek = Trek.query.get(booking.trek_id)
+    trek.available_slots += 1
+    db.session.commit()
+
+    flash('Booking cancelled successfully')
+    return redirect(url_for('user_dashboard'))
+
+#trekhistory
+@app.route('/user/history')
+@login_required
+def user_history():
+    if current_user.role != 'trekker':
+        flash('Access Denied')
+        return redirect(url_for('login'))
+
+    history = Booking.query.filter(
+        Booking.user_id == current_user.id,
+        Booking.status.in_(['Completed', 'Cancelled'])
+    ).all()
+
+    history_data = []
+    for booking in history:
+        trek = Trek.query.get(booking.trek_id)
+        history_data.append({
+            'booking': booking,
+            'trek': trek
+        })
+
+    return render_template('user_history.html',
+        history_data=history_data
+    )                    

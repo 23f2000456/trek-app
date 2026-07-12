@@ -7,34 +7,55 @@
 <body>
 <nav class="navbar navbar-dark bg-dark px-4">
     <span class="navbar-brand">Trekkers</span>
-    <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+    <div>
+        <a href="/user/treks" class="btn btn-outline-light btn-sm me-2">Browse Treks</a>
+        <a href="/user/history" class="btn btn-outline-light btn-sm me-2">History</a>
+        <a href="/user/profile" class="btn btn-outline-light btn-sm me-2">Profile</a>
+        <a href="/logout" class="btn btn-outline-light btn-sm">Logout</a>
+    </div>
 </nav>
 <div class="container mt-4">
-    <h4>Welcome, {{ current_user.name }}</h4>
-    <h5 class="mt-4">Your Bookings</h5>
-    {% if my_bookings %}
-    <table class="table table-bordered mt-3">
-        <thead>
-            <tr>
-                <th>Booking ID</th>
-                <th>Trek ID</th>
-                <th>Booking Date</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for booking in my_bookings %}
-            <tr>
-                <td>{{ booking.booking_id }}</td>
-                <td>{{ booking.trek_id }}</td>
-                <td>{{ booking.booking_date }}</td>
-                <td>{{ booking.status }}</td>
-            </tr>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for msg in messages %}
+                <div class="alert alert-info">{{ msg }}</div>
             {% endfor %}
-        </tbody>
-    </table>
+        {% endif %}
+    {% endwith %}
+
+    <h4>Welcome, {{ current_user.name }}</h4>
+    <h5 class="mt-4">My Active Bookings</h5>
+
+    {% if booking_data %}
+    <div class="row mt-3">
+        {% for item in booking_data %}
+        {% if item.booking.status == 'Booked' %}
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-dark text-white d-flex justify-content-between">
+                    <span>{{ item.trek.name }}</span>
+                    <span class="badge bg-success">{{ item.booking.status }}</span>
+                </div>
+                <div class="card-body">
+                    <p><strong>Location:</strong> {{ item.trek.location }}</p>
+                    <p><strong>Difficulty:</strong> {{ item.trek.difficulty }}</p>
+                    <p><strong>Start Date:</strong> {{ item.trek.start_date }}</p>
+                    <p><strong>End Date:</strong> {{ item.trek.end_date }}</p>
+                    <p><strong>Trek Status:</strong> {{ item.trek.status }}</p>
+                    <p><strong>Booking Date:</strong> {{ item.booking.booking_date }}</p>
+                    <a href="/user/booking/{{ item.booking.booking_id }}/cancel"
+                       class="btn btn-danger btn-sm"
+                       onclick="return confirm('Cancel this booking?')">
+                        Cancel Booking
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
     {% else %}
-        <p class="text-muted">No bookings yet.</p>
+        <p class="text-muted mt-3">No active bookings. <a href="/user/treks">Browse treks</a></p>
     {% endif %}
 </div>
 </body>
