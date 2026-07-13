@@ -20,6 +20,7 @@
             {% endfor %}
         {% endif %}
     {% endwith %}
+
     <h4>All Trek Staff</h4>
     <table class="table table-bordered mt-3">
         <thead class="table-dark">
@@ -38,16 +39,32 @@
                 <td>{{ staff.id }}</td>
                 <td>{{ staff.name }}</td>
                 <td>{{ staff.email }}</td>
-                <td>{{ 'Yes' if staff.approval else 'No' }}</td>
-                <td>{{ 'Yes' if staff.blacklist else 'No' }}</td>
                 <td>
+                    <span class="badge {% if staff.approval %}bg-success{% else %}bg-secondary{% endif %}">
+                        {{ 'Yes' if staff.approval else 'Pending' }}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge {% if staff.blacklist %}bg-danger{% else %}bg-success{% endif %}">
+                        {{ 'Yes' if staff.blacklist else 'No' }}
+                    </span>
+                </td>
+                <td class="d-flex gap-1 flex-wrap">
                     {% if not staff.approval %}
-                    <a href="/admin/staff/approve/{{ staff.id }}" class="btn btn-sm btn-success">Approve</a>
+                    <a href="/admin/staff/approve/{{ staff.id }}"
+                       class="btn btn-sm btn-success">Approve</a>
                     {% endif %}
                     {% if not staff.blacklist %}
-                    <a href="/admin/staff/blacklist/{{ staff.id }}" class="btn btn-sm btn-warning">Blacklist</a>
+                    <a href="/admin/staff/blacklist/{{ staff.id }}"
+                       class="btn btn-sm btn-warning"
+                       onclick="return confirm('Blacklist this staff member?')">Blacklist</a>
+
+                    {% else %}
+                    <a href="/admin/staff/unblacklist/{{ staff.id }}"
+                       class="btn btn-sm btn-success">Unblacklist</a>
                     {% endif %}
-                    <a href="/admin/staff/remove/{{ staff.id }}" class="btn btn-sm btn-danger"
+                    <a href="/admin/staff/remove/{{ staff.id }}"
+                       class="btn btn-sm btn-danger"
                        onclick="return confirm('Remove this staff member?')">Remove</a>
                 </td>
             </tr>

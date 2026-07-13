@@ -41,13 +41,28 @@
                     <p><strong>End Date:</strong> {{ item.trek.end_date }}</p>
                     <p><strong>Available Slots:</strong> {{ item.trek.available_slots }}/{{ item.trek.total_slots }}</p>
                     <p><strong>Registered Trekkers:</strong> {{ item.registered_count }}</p>
-                    <div class="d-flex gap-2">
-                        <a href="/staff/trek/{{ item.trek.id }}/participants" class="btn btn-sm btn-primary">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="/staff/trek/{{ item.trek.id }}/participants" 
+                           class="btn btn-sm btn-primary">
                             View Participants
                         </a>
-                        <a href="/staff/trek/{{ item.trek.id }}/update" class="btn btn-sm btn-warning">
+                        <a href="/staff/trek/{{ item.trek.id }}/update" 
+                           class="btn btn-sm btn-warning">
                             Update Trek
                         </a>
+                        <a href="/staff/trek/{{ item.trek.id }}/history" 
+                           class="btn btn-sm btn-info">
+                            View History
+                        </a>
+                        {% if item.trek.status != 'Completed' %}
+                        <a href="/staff/trek/{{ item.trek.id }}/complete"
+                           class="btn btn-sm btn-success"
+                           onclick="return confirm('Mark this trek as completed?')">
+                            Mark Completed
+                        </a>
+                        {% else %}
+                        <span class="badge bg-secondary">Completed</span>
+                        {% endif %}
                     </div>
                 </div>
             </div>

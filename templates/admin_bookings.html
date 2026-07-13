@@ -13,15 +13,24 @@
     </div>
 </nav>
 <div class="container mt-4">
-    <h4>All Bookings</h4>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for msg in messages %}
+                <div class="alert alert-info">{{ msg }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <h4>All Booking Records</h4>
     <table class="table table-bordered mt-3">
         <thead class="table-dark">
             <tr>
                 <th>Booking ID</th>
                 <th>User ID</th>
                 <th>Trek ID</th>
-                <th>Date</th>
+                <th>Booking Date</th>
                 <th>Status</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -31,7 +40,24 @@
                 <td>{{ booking.user_id }}</td>
                 <td>{{ booking.trek_id }}</td>
                 <td>{{ booking.booking_date }}</td>
-                <td>{{ booking.status }}</td>
+                <td>
+                    <span class="badge
+                        {% if booking.status == 'Booked' %}bg-success
+                        {% elif booking.status == 'Cancelled' %}bg-danger
+                        {% else %}bg-secondary{% endif %}">
+                        {{ booking.status }}
+                    </span>
+                </td>
+                <td>
+                    {% if booking.status == 'Booked' %}
+                    <a href="/admin/booking/{{ booking.booking_id }}/complete"
+                       class="btn btn-sm btn-success"
+                       onclick="return confirm('Mark as completed?')">Complete</a>
+                    <a href="/admin/booking/{{ booking.booking_id }}/cancel"
+                       class="btn btn-sm btn-danger"
+                       onclick="return confirm('Cancel this booking?')">Cancel</a>
+                    {% endif %}
+                </td>
             </tr>
             {% endfor %}
         </tbody>

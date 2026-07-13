@@ -94,6 +94,9 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+
+#adminmanagement admin admin admin admin admin admin admin admin admin admin admin admin admin admin admin admin admin admin admin admin admin
+
 #admin_dashboard
 @app.route('/admin/dashboard')
 @login_required
@@ -123,7 +126,7 @@ def admin_treks():
     treks = Trek.query.all()
     return render_template('admin_treks.html', treks=treks)
 
-#add
+#addtrek
 @app.route('/admin/trek/add', methods=['GET', 'POST'])
 @login_required
 def admin_add_trek():
@@ -153,7 +156,7 @@ def admin_add_trek():
     
     return render_template('admin_add_trek.html', staff_list=staff_list)
 
-#edit
+#edittrek
 @app.route('/admin/trek/edit/<int:trek_id>', methods=['GET', 'POST'])
 @login_required
 def admin_edit_trek(trek_id):
@@ -181,13 +184,15 @@ def admin_edit_trek(trek_id):
     
     return render_template('admin_edit_trek.html', trek=trek, staff_list=staff_list)
 
-#delete
+#deletetrek
 @app.route('/admin/trek/delete/<int:trek_id>')
 @login_required
 def admin_delete_trek(trek_id):
     if current_user.role !='admin':
         return redirect(url_for('login'))
     trek = Trek.query.get_or_404(trek_id)
+    Booking.query.filter_by(trek_id=trek_id).delete()
+
     db.session.delete(trek)
     db.session.commit()
     flash('Trek deleted successfully')
@@ -228,20 +233,41 @@ def blacklist_staff(user_id):
     flash(f'{staff.name} has been blacklisted')
     return redirect(url_for('admin_staff'))
 
-#remove
+@app.route('/admin/staff/unblacklist/<int:user_id>')
+@login_required
+def unblacklist_staff(user_id):
+    if current_user.role != 'admin':
+        return redirect(url_for('login'))
+    staff = User.query.get_or_404(user_id)
+    staff.blacklist = False
+    db.session.commit()
+    flash(f'{staff.name} has been unblacklisted')
+    return redirect(url_for('admin_staff'))
+
 @app.route('/admin/staff/remove/<int:user_id>')
 @login_required
 def remove_staff(user_id):
     if current_user.role != 'admin':
         return redirect(url_for('login'))
+
     staff = User.query.get_or_404(user_id)
+
+    # Delete bookings for treks assigned to this staff
+    assigned_treks = Trek.query.filter_by(assigned_staffid=user_id).all()
+    for trek in assigned_treks:
+        Booking.query.filter_by(trek_id=trek.id).delete()
+        db.session.delete(trek)
+
+    # Delete staff profile
     if staff.staff_profile:
         db.session.delete(staff.staff_profile)
+
+    # Delete the user
     db.session.delete(staff)
     db.session.commit()
-    flash('Staff removed Successfully')
-    return redirect(url_for('admin_staff'))
 
+    flash('Staff removed successfully')
+    return redirect(url_for('admin_staff'))
 
 #user_management
 @app.route('/admin/users')
@@ -262,6 +288,17 @@ def blacklist_user(user_id):
     user.blacklist = True
     db.session.commit()
     flash(f'{user.name} had been blacklisted')
+    return redirect(url_for('admin_users'))
+
+@app.route('/admin/user/unblacklist/<int:user_id>')
+@login_required
+def unblacklist_user(user_id):
+    if current_user.role != 'admin':
+        return redirect(url_for('login'))
+    user = User.query.get_or_404(user_id)
+    user.blacklist = False
+    db.session.commit()
+    flash(f'{user.name} has been unblacklisted')
     return redirect(url_for('admin_users'))
 
 
@@ -314,7 +351,7 @@ def admin_search():
 
 
 
-#staffmanagement
+#staffmanagement staff staff staff staff  staff staff staff staff  staff staff staff staff  staff staff staff staff  staff staff staff staff 
 
 #profile_update
 @app.route('/staff/profile', methods=['GET', 'POST'])
@@ -422,7 +459,7 @@ def staff_update_trek(trek_id):
 
 
 
-#usermanagemnt
+#usermanagemnt user user user user user user user user user user user user user user user user user user user user user user user user
 
 
 #user_dashboard
@@ -432,9 +469,9 @@ def user_dashboard():
     if current_user.role != 'trekker':
         flash('Access Denied')
         return redirect(url_for('login'))
-    
-    my_bookings=Booking.query.filter_by(user_id=current_user.id).all()
 
+    my_bookings = Booking.query.filter_by(user_id=current_user.id).all()
+    
     booking_data = []
     for booking in my_bookings:
         trek = Trek.query.get(booking.trek_id)
@@ -443,10 +480,12 @@ def user_dashboard():
             'trek': trek
         })
 
-    return render_template('user_dashboard.html',
-        my_bookings=my_bookings
-    )
+    available_treks = Trek.query.filter_by(status='Open').all()
 
+    return render_template('user_dashboard.html',
+        booking_data=booking_data,
+        available_treks=available_treks
+    )
 
 #user_profile
 @app.route('/user/profile',methods=['GET', 'POST'])
@@ -495,7 +534,7 @@ def user_treks():
     )
 
 #booktrek
-app.route('/user/trek/<int:trek_id>/book', methods=['GET', 'POST'])
+@app.route('/user/trek/<int:trek_id>/book', methods=['GET', 'POST'])
 @login_required
 def book_trek(trek_id):
     if current_user.role != 'trekker':
@@ -588,4 +627,98 @@ def user_history():
 
     return render_template('user_history.html',
         history_data=history_data
-    )                    
+    ) 
+
+
+#booking_management
+
+
+#booking_completed
+@app.route('/admin/booking/<int:booking_id>/complete')
+@login_required
+def admin_complete_booking(booking_id):
+    if current_user.role != 'admin':
+        flash('Access Denied')
+        return redirect(url_for('login'))
+
+    booking = Booking.query.get_or_404(booking_id)
+    booking.status = 'Completed'
+    db.session.commit()
+    flash('Booking marked as completed')
+    return redirect(url_for('admin_bookings'))
+
+#booking_cancelled
+@app.route('/admin/booking/<int:booking_id>/cancel')
+@login_required
+def admin_cancel_booking(booking_id):
+    if current_user.role != 'admin':
+        flash('Access Denied')
+        return redirect(url_for('login'))
+
+    booking = Booking.query.get_or_404(booking_id)
+
+    if booking.status == 'Booked':
+        trek = Trek.query.get(booking.trek_id)
+        trek.available_slots += 1
+
+    booking.status = 'Cancelled'
+    db.session.commit()
+    flash('Booking cancelled')
+    return redirect(url_for('admin_bookings'))
+
+
+
+@app.route('/staff/trek/<int:trek_id>/complete')
+@login_required
+def staff_complete_trek(trek_id):
+    if current_user.role != 'staff':
+        flash('Access Denied')
+        return redirect(url_for('login'))
+
+    trek = Trek.query.get_or_404(trek_id)
+
+    if trek.assigned_staffid != current_user.id:
+        flash('You are not assigned to this trek')
+        return redirect(url_for('staff_dashboard'))
+    
+    trek.status = 'Completed'
+
+    bookings = Booking.query.filter_by(
+        trek_id=trek_id,
+        status='Booked'
+    ).all()
+    for booking in bookings:
+        booking.status = 'Completed'
+
+    db.session.commit()
+    flash(f'{trek.name} marked as completed')
+    return redirect(url_for('staff_dashboard'))
+
+#staff_view_history
+@app.route('/staff/trek/<int:trek_id>/history')
+@login_required
+def staff_trek_history(trek_id):
+    if current_user.role != 'staff':
+        flash('Access Denied')
+        return redirect(url_for('login'))
+
+    trek = Trek.query.get_or_404(trek_id)
+
+    if trek.assigned_staffid != current_user.id:
+        flash('You are not assigned to this trek')
+        return redirect(url_for('staff_dashboard'))
+
+    all_bookings = Booking.query.filter_by(trek_id=trek_id).all()
+
+    booking_data = []
+    for booking in all_bookings:
+        user = User.query.get(booking.user_id)
+        booking_data.append({
+            'booking': booking,
+            'user': user
+        })
+
+    return render_template('staff_trek_history.html',
+        trek=trek,
+        booking_data=booking_data
+    )

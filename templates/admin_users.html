@@ -20,6 +20,7 @@
             {% endfor %}
         {% endif %}
     {% endwith %}
+
     <h4>All Trekkers</h4>
     <table class="table table-bordered mt-3">
         <thead class="table-dark">
@@ -37,10 +38,18 @@
                 <td>{{ user.id }}</td>
                 <td>{{ user.name }}</td>
                 <td>{{ user.email }}</td>
-                <td>{{ 'Yes' if user.blacklist else 'No' }}</td>
                 <td>
-                    {% if not user.blacklist %}
-                    <a href="/admin/user/blacklist/{{ user.id }}" class="btn btn-sm btn-warning">Blacklist</a>
+                    {% if user.blacklist %}
+                        <span class="badge bg-danger">Yes</span>
+                    {% else %}
+                        <span class="badge bg-success">No</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if user.blacklist %}
+                        <a href="/admin/user/unblacklist/{{ user.id }}" class="btn btn-sm btn-success">Unblacklist</a>
+                    {% else %}
+                        <a href="/admin/user/blacklist/{{ user.id }}" class="btn btn-sm btn-warning" onclick="return confirm('Blacklist this user?')">Blacklist</a>
                     {% endif %}
                 </td>
             </tr>
